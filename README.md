@@ -4,7 +4,7 @@ Automatically clicks Chrome's "Allow remote debugging?" dialog when Chrome DevTo
 
 This uses [Hammerspoon](https://www.hammerspoon.org/) and macOS Accessibility automation. It does not disable Chrome's permission prompt; it watches for the dialog and presses the visible `Allow` button.
 
-![Chrome remote debugging approval dialog](assets/chrome-remote-debugging-approval.png)
+<img src="assets/chrome-remote-debugging-approval.png" alt="Chrome remote debugging approval dialog" width="360">
 
 ## Security warning
 
