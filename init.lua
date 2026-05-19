@@ -112,4 +112,4 @@ hs.hotkey.bind({"ctrl", "alt", "cmd"}, "D", function()
   scanChrome()
 end)
 
-hs.timer.doEvery(0.25, scanChrome)
+hs.timer.doEvery(0.5, scanChrome)

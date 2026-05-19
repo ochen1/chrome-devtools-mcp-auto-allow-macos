@@ -27,7 +27,7 @@ This script automatically approves Chrome remote debugging prompts. Only use it 
 
 When Chrome shows the remote debugging approval dialog, the script scans Chrome's accessibility tree and presses `Allow`.
 
-It polls running Chrome windows every 0.25 seconds, so the click usually happens shortly after the dialog appears.
+It polls running Chrome windows every 0.5 seconds, so the click usually happens shortly after the dialog appears.
 
 You can also trigger a manual scan with:
 
