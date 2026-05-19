@@ -29,6 +29,8 @@ When Chrome shows the remote debugging approval dialog, the script scans Chrome'
 
 It polls running Chrome windows every 0.5 seconds, so the click usually happens shortly after the dialog appears.
 
+The polling timer is stored globally so Hammerspoon keeps it alive after the config finishes loading.
+
 You can also trigger a manual scan with:
 
 ```text

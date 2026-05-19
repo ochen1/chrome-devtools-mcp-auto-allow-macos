@@ -141,4 +141,4 @@ hs.hotkey.bind({"ctrl", "alt", "cmd"}, "D", function()
   scanChrome()
 end)
 
-hs.timer.doEvery(0.5, scanChrome)
+chromeDevToolsAutoAllowTimer = hs.timer.doEvery(0.5, scanChrome)
