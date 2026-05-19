@@ -51,7 +51,7 @@ Matched remote debugging dialog
 Pressing Allow
 ```
 
-If the dialog is detected but the button is not pressed, run `debug-dump.lua` in the Hammerspoon Console while the dialog is visible. Search the output for `Allow`, `AXButton`, or `remote debugging`.
+If the dialog is detected but the button is not pressed, run `debug-dialogs.lua` in the Hammerspoon Console while the dialog is visible to inspect native Chrome dialog containers. Then run `debug-press.lua` to inspect the matched `Allow` button and test `AXPress`.
 
 Chrome may expose button text through `AXDescription` instead of `AXTitle`. The included script checks both, plus `AXValue` and `AXHelp`.
 

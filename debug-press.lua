@@ -1,7 +1,5 @@
 local ax = require("hs.axuielement")
 
-print("Chrome DevTools auto-allow script loaded")
-
 local chromeNames = {
   ["Google Chrome"] = true,
   ["Google Chrome Beta"] = true,
@@ -15,6 +13,13 @@ local function safeAttr(el, name)
   end)
   if ok then return value end
   return nil
+end
+
+local function safeAction(el, name)
+  local ok, a, b, c = pcall(function()
+    return el:performAction(name)
+  end)
+  return ok, a, b, c
 end
 
 local function nonempty(v)
@@ -32,12 +37,16 @@ local function textOf(el)
   }, " ")
 end
 
-local function roleOf(el)
-  return safeAttr(el, "AXRole") or ""
-end
-
 local function childrenOf(el)
   return safeAttr(el, "AXChildren") or {}
+end
+
+local function actionsOf(el)
+  local ok, actions = pcall(function()
+    return el:actionNames()
+  end)
+  if ok then return actions or {} end
+  return {}
 end
 
 local function containsText(el, needle, depth)
@@ -61,7 +70,7 @@ local function findButtonByText(el, wantedText, depth)
   depth = depth or 0
   if depth > 20 or not el then return nil end
 
-  local role = tostring(roleOf(el))
+  local role = tostring(safeAttr(el, "AXRole") or "")
   local text = textOf(el)
 
   if role == "AXButton" and text:find(wantedText, 1, true) then
@@ -77,7 +86,7 @@ local function findButtonByText(el, wantedText, depth)
 end
 
 local function isDialogContainer(el)
-  local role = tostring(roleOf(el))
+  local role = tostring(safeAttr(el, "AXRole") or "")
   local subrole = tostring(safeAttr(el, "AXSubrole") or "")
 
   return role == "AXSheet" or
@@ -108,26 +117,29 @@ local function findApprovalDialog(el, depth)
   return nil
 end
 
-local function scanChrome()
+local function describe(el, label)
+  print("")
+  print("== " .. label .. " ==")
+  print("role=" .. tostring(safeAttr(el, "AXRole")))
+  print("subrole=" .. tostring(safeAttr(el, "AXSubrole")))
+  print("title=" .. tostring(safeAttr(el, "AXTitle")))
+  print("description=" .. tostring(safeAttr(el, "AXDescription")))
+  print("value=" .. tostring(safeAttr(el, "AXValue")))
+  print("help=" .. tostring(safeAttr(el, "AXHelp")))
+  print("enabled=" .. tostring(safeAttr(el, "AXEnabled")))
+  print("focused=" .. tostring(safeAttr(el, "AXFocused")))
+  print("position=" .. hs.inspect(safeAttr(el, "AXPosition")))
+  print("size=" .. hs.inspect(safeAttr(el, "AXSize")))
+  print("actions=" .. table.concat(actionsOf(el), ", "))
+end
+
+local function dialogStillPresent()
   for _, app in ipairs(hs.application.runningApplications()) do
     if chromeNames[app:name()] then
       local appAx = ax.applicationElement(app)
-      local windows = safeAttr(appAx, "AXWindows") or {}
-
-      for _, win in ipairs(windows) do
-        local dialog = findApprovalDialog(win)
-
-        if dialog then
-          print("Matched remote debugging dialog")
-
-          local allow = findButtonByText(dialog, "Allow")
-          if allow then
-            print("Pressing Allow")
-            allow:performAction("AXPress")
-            return true
-          else
-            print("Matched dialog but did not find Allow button")
-          end
+      for _, win in ipairs(safeAttr(appAx, "AXWindows") or {}) do
+        if findApprovalDialog(win) then
+          return true
         end
       end
     end
@@ -136,9 +148,46 @@ local function scanChrome()
   return false
 end
 
-hs.hotkey.bind({"ctrl", "alt", "cmd"}, "D", function()
-  print("Manual scan triggered")
-  scanChrome()
-end)
+local function run()
+  print("Chrome DevTools approval debug started")
 
-hs.timer.doEvery(0.5, scanChrome)
+  for _, app in ipairs(hs.application.runningApplications()) do
+    if chromeNames[app:name()] then
+      print("Checking app: " .. app:name())
+      app:activate()
+
+      local appAx = ax.applicationElement(app)
+      for _, win in ipairs(safeAttr(appAx, "AXWindows") or {}) do
+        local dialog = findApprovalDialog(win)
+
+        if dialog then
+          describe(dialog, "Matched dialog container")
+
+          local allow = findButtonByText(dialog, "Allow")
+          if not allow then
+            print("No Allow AXButton found")
+            return false
+          end
+
+          describe(allow, "Matched Allow button")
+
+          local ok, a, b, c = safeAction(allow, "AXPress")
+          print("")
+          print("AXPress pcall ok=" .. tostring(ok))
+          print("AXPress returns=" .. tostring(a) .. ", " .. tostring(b) .. ", " .. tostring(c))
+
+          hs.timer.doAfter(0.3, function()
+            print("Dialog still present after AXPress: " .. tostring(dialogStillPresent()))
+          end)
+
+          return true
+        end
+      end
+    end
+  end
+
+  print("No Chrome remote debugging approval dialog found")
+  return false
+end
+
+run()
