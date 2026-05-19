@@ -4,6 +4,8 @@ Automatically clicks Chrome's "Allow remote debugging?" dialog when Chrome DevTo
 
 This uses [Hammerspoon](https://www.hammerspoon.org/) and macOS Accessibility automation. It does not disable Chrome's permission prompt; it watches for the dialog and presses the visible `Allow` button.
 
+![Chrome remote debugging approval dialog](assets/chrome-remote-debugging-approval.png)
+
 ## Security warning
 
 This script automatically approves Chrome remote debugging prompts. Only use it on a trusted machine, with trusted MCP clients. Remote debugging can give another local process broad control over the browser session.
